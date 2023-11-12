@@ -52,7 +52,13 @@ class FunctionInputs(AutomateBase):
     report_format: str = Field(
         default="PDF",
         title="Report Format",
-        description="Preferred format for the compliance report."
+        description="Preferred format for the compliance report.",
+        json_schema_extra={
+            "enum": ["PDF", "HTML", "JSON"],
+            "options": {
+                "format": "radio"
+            }
+        }
     )
     threshold_mode: ThresholdMode = Field(
         default=ThresholdMode.ERROR,
