@@ -110,6 +110,8 @@ charset-normalizer==3.3.2 ; python_version >= "3.11" and python_version < "4.0" 
 deprecated==1.2.14 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:6fac8b097794a90302bdbb17b9b815e732d3c4720583ff1b198499d78470466c \
     --hash=sha256:e5323eb936458dccc2582dc6f9c322c852a775a27065ff2b0c4970b9d53d01b3
+fpdf==1.7.2 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:125840783289e7d12552b1e86ab692c37322e7a65b96a99e0ea86cca041b6779
 gql[requests,websockets]==3.4.1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:11dc5d8715a827f2c2899593439a4f36449db4f0eafa5b1ea63948f8a2f8c545 \
     --hash=sha256:315624ca0f4d571ef149d455033ebd35e45c1a13f18a059596aeddcea99135cf
@@ -627,6 +629,7 @@ Pillow~=10.1.0
 docutils~=0.20.1
 sphinx~=7.0.1
 Jinja2~=3.1.2
+fpdf~=1.7.2
 mypy~=1.6.1
 filelock~=3.12.2
 idna~=3.4
@@ -652,3 +655,4 @@ stringcase~=1.2.0
 ujson~=5.8.0
 wrapt~=1.16.0
 httpx~=0.25.1
+python-dotenv~=1.0.0

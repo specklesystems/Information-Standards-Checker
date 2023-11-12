@@ -1,6 +1,7 @@
-"""This module contains the business logic of the function.
-
-Use the automation_context module to wrap your function in an Autamate context helper
+"""
+This module contains the business logic for a Speckle Automate function.
+It demonstrates how to define input models, traverse and process data,
+and generate reports based on user-specified criteria.
 """
 from enum import Enum
 
@@ -11,29 +12,44 @@ from speckle_automate import (
     execute_automate_function,
 )
 
-from flatten import flatten_base
+from Rules.checks import BaseObjectRules
+from Rules.traversal import get_data_traversal_rules
+from Utilities.report import generate_report
 
 
 class ThresholdMode(Enum):
+    """
+    ThresholdMode: Defines different modes for reporting thresholds.
+    """
+
     ERROR = "ERROR"
     WARN = "WARN"
     INFO = "INFO"
 
 
 class Format(Enum):
+    """
+    Format: Enum for defining report formats.
+    """
+
     PDF = "PDF"
     HTML = "HTML"
     JSON = "JSON"
 
 
 def create_one_of_enum(enum_cls):
+    """
+    Helper function to create a JSON schema from an Enum class.
+    This is used for generating user input forms in the UI.
+    """
     return [{"const": item.value, "title": item.name} for item in enum_cls]
 
 
 class FunctionInputs(AutomateBase):
-    """These are function author defined values.
+    """
+    FunctionInputs: Defines user inputs for the automation function.
+    The structure is based on Pydantic models for data validation.
 
-    Automate will make sure to supply them matching the types specified here.
     Please use the pydantic model schema to define your inputs:
     https://docs.pydantic.dev/latest/usage/models/
     """
@@ -95,50 +111,102 @@ def automate_function(
     automate_context: AutomationContext,
     function_inputs: FunctionInputs,
 ) -> None:
-    """This is an example Speckle Automate function.
+    """
+    The core logic of the Speckle Automate function.
+    Processes Speckle data and generates a report based on user inputs.
 
     Args:
-        automate_context: A context helper object, that carries relevant information
-            about the runtime context of this function.
-            It gives access to the Speckle project data, that triggered this run.
-            It also has convenience methods attach result data to the Speckle model.
-        function_inputs: An instance object matching the defined schema.
+        automate_context: Context object with data and methods for the run.
+        function_inputs: User-defined input values.
     """
     # the context provides a convenient way, to receive the triggering version
     version_root_object = automate_context.receive_version()
 
-    objects_with_forbidden_speckle_type = [
-        b
-        for b in flatten_base(version_root_object)
-        if b.speckle_type == function_inputs.forbidden_speckle_type
-    ]
-    count = len(objects_with_forbidden_speckle_type)
+    # Traverse the received Speckle data.
+    speckle_data = get_data_traversal_rules()
+    traversal_contexts_collection = speckle_data.traverse(version_root_object)
 
-    if count > 0:
-        # this is how a run is marked with a failure cause
-        automate_context.attach_error_to_objects(
-            category="Forbidden speckle_type"
-            " ({function_inputs.forbidden_speckle_type})",
-            object_ids=[o.id for o in objects_with_forbidden_speckle_type if o.id],
-            message="This project should not contain the type: "
-            f"{function_inputs.forbidden_speckle_type}",
+    # Assuming each object has properties: name, type, and id
+    assessed_objects = {"missing": [], "invalid": [], "passing": []}
+
+    # Checking parameters
+    for context in traversal_contexts_collection:
+        current_object = getattr(context.current, "parameters", None)
+
+        if current_object:
+            for parameter_key in current_object.get_dynamic_member_names():
+                parameter = current_object[parameter_key]
+                assessment = BaseObjectRules.evaluate_parameter(
+                    parameter, function_inputs
+                )
+
+                if getattr(
+                    current_object, "speckle_type", None
+                ) == "Objects.Other.Revit.RevitInstance" and hasattr(
+                    current_object, "definition"
+                ):
+                    type_ = getattr(current_object.definition, "type", "Unknown")
+                    family = getattr(current_object.definition, "family", "Unknown")
+                else:
+                    type_ = getattr(current_object, "type", "Unknown")
+                    family = getattr(current_object, "family", "Unknown")
+
+                object_info = {
+                    "name": getattr(current_object, "name", "Unknown"),
+                    "type": type_,
+                    "family": family,
+                    "id": getattr(current_object, "id", "Unknown"),
+                }
+
+                if assessment:
+                    assessed_objects[assessment].append(object_info)
+
+    # Attach errors or info to objects based on their parameter evaluation state
+    for state, objects in assessed_objects.items():
+        ids = [obj["id"] for obj in objects if "id" in obj and obj["id"]]
+        if not ids:
+            continue
+
+        # Construct a detailed message for each object
+        detailed_messages = [
+            f"{obj['name']} (Type: {obj['type']}, ID: {obj['id']})"
+            for obj in objects
+            if "id" in obj and obj["id"]
+        ]
+
+        # Combine messages into a single string
+        combined_message = (
+            f"Found {len(objects)} objects with {state} parameters: "
+            + "; ".join(detailed_messages)
         )
-        automate_context.mark_run_failed(
-            "Automation failed: "
-            f"Found {count} object that have one of the forbidden speckle types: "
-            f"{function_inputs.forbidden_speckle_type}"
-        )
 
-        # set the automation context view, to the original model / version view
-        # to show the offending objects
-        automate_context.set_context_view()
+        if state in ["missing", "invalid"]:
+            automate_context.attach_error_to_objects(
+                category=state.capitalize(), object_ids=ids, message=combined_message
+            )
+        else:  # 'valid'
+            automate_context.attach_info_to_objects(
+                category=state.capitalize(), object_ids=ids, message=combined_message
+            )
 
+    # Determine overall automation success or failure
+    if assessed_objects["missing"] or assessed_objects["invalid"]:
+        automate_context.mark_run_failed("Automation failed due to parameter issues.")
     else:
-        automate_context.mark_run_success("No forbidden types found.")
+        automate_context.mark_run_success("All parameters are valid.")
 
-    # if the function generates file results, this is how it can be
-    # attached to the Speckle project / model
-    # automate_context.store_file_result("./report.pdf")
+    # Generate and attach the report
+    report_format = (
+        function_inputs.report_format.value
+    )  # Accessing the value of the Enum
+    report_file = generate_report(
+        assessed_objects,
+        report_format,
+        function_inputs.single_category,
+        function_inputs.single_property,
+        function_inputs.single_rule,
+    )
+    automate_context.store_file_result(report_file)
 
 
 # make sure to call the function with the executor
