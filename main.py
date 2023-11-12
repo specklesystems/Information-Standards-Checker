@@ -61,7 +61,8 @@ class FunctionInputs(AutomateBase):
             "options": {
                 "format": "radio"
             }
-        }
+        },
+        format= "radio"
     )
     threshold_mode: ThresholdMode = Field(
         default=ThresholdMode.ERROR,
