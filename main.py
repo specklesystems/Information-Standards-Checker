@@ -18,9 +18,9 @@ class ThresholdMode(Enum):
     WARN = 'WARN'
     INFO = 'INFO'
 
-def create_oneOf_enum(enum_cls):
+def create_one_of_enum(enum_cls):
     return [
-        {"const": item.value, "title": item.name.capitalize()}
+        {"const": item.value, "title": item.name}
         for item in enum_cls
     ]
 
@@ -33,23 +33,20 @@ class FunctionInputs(AutomateBase):
     """
 
     ids_xml_file: str = Field(
-        None,
+        "https://example.com/project_standards/ids.xml",
         title="IDS XML File",
         description="URL or content of the IDS XML file defining project standards.",
         json_schema_extra={
-            "options": {
-                "readonly": True
-            }
-        }
+            "readOnly": True
+        },
+
     )
     bsdd_sheets: str = Field(
-        None,
+        "https://example.com/project_standards/bsdd.json",
         title="bsDD Sheet Identifier(s)",
         description="Identifier or URL for the bsDD sheet relevant to the project.",
         json_schema_extra={
-            "options": {
-                "readonly": True
-            }
+            "readOnly": True
         }
     )
     report_format: str = Field(
@@ -57,15 +54,12 @@ class FunctionInputs(AutomateBase):
         title="Report Format",
         description="Preferred format for the compliance report."
     )
-    threshold_mode: ThresholdMode = Field(
+    threshold_mode = Field(
         default=ThresholdMode.ERROR,
-        title="Threshold Mode",
-        description="Set the threshold mode for reporting: ERROR, WARN, or INFO.",
+        title="Reporting Threshold",
+        description="Set the threshold mode for reporting results: ERROR, WARN, or INFO.",
         json_schema_extra={
-            "oneOf": create_oneOf_enum(ThresholdMode),
-            "options": {
-                "readonly": True
-            }
+            "oneOf": create_one_of_enum(ThresholdMode),
         }
     )
 
