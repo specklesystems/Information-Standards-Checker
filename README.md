@@ -1,4 +1,4 @@
-[![build and deploy Speckle functions](https://github.com/specklesystems/speckle_automate-data_standards_checker/actions/workflows/main.yml/badge.svg)](https://github.com/specklesystems/speckle_automate-data_standards_checker/actions/workflows/main.yml)
+[![build and deploy Speckle functions](https://github.com/specklesystems/speckle_automate-information_standards/actions/workflows/main.yml/badge.svg)](https://github.com/specklesystems/speckle_automate-information_standards/actions/workflows/main.yml)
 
 # Speckle Automate Function: Data Standards Checker with IDS and bsDD
 
