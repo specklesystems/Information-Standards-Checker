@@ -35,18 +35,21 @@ class FunctionInputs(AutomateBase):
     ids_xml_file: str = Field(
         "https://example.com/project_standards/ids.xml",
         title="IDS XML File",
-        description="URL or content of the IDS XML file defining project standards. e.g. https://example.com/project_standards/ids.xml",
+        description="URL or content of the IDS XML file defining project standards.",
         json_schema_extra={
-            "readOnly": True
+            "readOnly": True,
+            "label": "https://example.com/project_standards/ids.xml"
         },
+
 
     )
     bsdd_sheets: str = Field(
         "https://example.com/project_standards/bsdd.json",
         title="bsDD Sheet Identifier(s)",
-        description="Identifier or URL for the bsDD sheet relevant to the project. e.g. https://example.com/project_standards/bsdd.json",
+        description="Identifier or URL for the bsDD sheet relevant to the project.",
         json_schema_extra={
-            "readOnly": True
+            "readOnly": True,
+            "label": "https://example.com/project_standards/bsdd.json"
         }
     )
     report_format: str = Field(
