@@ -54,7 +54,7 @@ class FunctionInputs(AutomateBase):
         title="Report Format",
         description="Preferred format for the compliance report."
     )
-    threshold_mode = Field(
+    threshold_mode: ThresholdMode = Field(
         default=ThresholdMode.ERROR,
         title="Reporting Threshold",
         description="Set the threshold mode for reporting results: ERROR, WARN, or INFO.",
