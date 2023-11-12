@@ -2,6 +2,7 @@
 
 Use the automation_context module to wrap your function in an Autamate context helper
 """
+from enum import Enum
 
 from pydantic import Field
 from speckle_automate import (
@@ -12,6 +13,16 @@ from speckle_automate import (
 
 from flatten import flatten_base
 
+class ThresholdMode(Enum):
+    ERROR = 'ERROR'
+    WARN = 'WARN'
+    INFO = 'INFO'
+
+def create_oneOf_enum(enum_cls):
+    return [
+        {"const": item.value, "title": item.name.capitalize()}
+        for item in enum_cls
+    ]
 
 class FunctionInputs(AutomateBase):
     """These are function author defined values.
@@ -21,12 +32,41 @@ class FunctionInputs(AutomateBase):
     https://docs.pydantic.dev/latest/usage/models/
     """
 
-    forbidden_speckle_type: str = Field(
-        title="Forbidden speckle type",
-        description=(
-            "If a object has the following speckle_type,"
-            " it will be marked with an error."
-        ),
+    ids_xml_file: str = Field(
+        None,
+        title="IDS XML File",
+        description="URL or content of the IDS XML file defining project standards.",
+        json_schema_extra={
+            "options": {
+                "readonly": True
+            }
+        }
+    )
+    bsdd_sheets: str = Field(
+        None,
+        title="bsDD Sheet Identifier(s)",
+        description="Identifier or URL for the bsDD sheet relevant to the project.",
+        json_schema_extra={
+            "options": {
+                "readonly": True
+            }
+        }
+    )
+    report_format: str = Field(
+        default="PDF",
+        title="Report Format",
+        description="Preferred format for the compliance report."
+    )
+    threshold_mode: ThresholdMode = Field(
+        default=ThresholdMode.ERROR,
+        title="Threshold Mode",
+        description="Set the threshold mode for reporting: ERROR, WARN, or INFO.",
+        json_schema_extra={
+            "oneOf": create_oneOf_enum(ThresholdMode),
+            "options": {
+                "readonly": True
+            }
+        }
     )
 
 
@@ -40,10 +80,10 @@ def automate_function(
         automate_context: A context helper object, that carries relevant information
             about the runtime context of this function.
             It gives access to the Speckle project data, that triggered this run.
-            It also has conveniece methods attach result data to the Speckle model.
+            It also has convenience methods attach result data to the Speckle model.
         function_inputs: An instance object matching the defined schema.
     """
-    # the context provides a conveniet way, to receive the triggering version
+    # the context provides a convenient way, to receive the triggering version
     version_root_object = automate_context.receive_version()
 
     objects_with_forbidden_speckle_type = [
@@ -79,15 +119,6 @@ def automate_function(
     # attached to the Speckle project / model
     # automate_context.store_file_result("./report.pdf")
 
-
-def automate_function_without_inputs(automate_context: AutomationContext) -> None:
-    """A function example without inputs.
-
-    If your function does not need any input variables,
-     besides what the automation context provides,
-     the inputs argument can be omitted.
-    """
-    pass
 
 
 # make sure to call the function with the executor
