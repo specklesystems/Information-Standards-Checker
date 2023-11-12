@@ -13,16 +13,22 @@ from speckle_automate import (
 
 from flatten import flatten_base
 
+
 class ThresholdMode(Enum):
-    ERROR = 'ERROR'
-    WARN = 'WARN'
-    INFO = 'INFO'
+    ERROR = "ERROR"
+    WARN = "WARN"
+    INFO = "INFO"
+
+
+class Format(Enum):
+    PDF = "PDF"
+    HTML = "HTML"
+    JSON = "JSON"
+
 
 def create_one_of_enum(enum_cls):
-    return [
-        {"const": item.value, "title": item.name}
-        for item in enum_cls
-    ]
+    return [{"const": item.value, "title": item.name} for item in enum_cls]
+
 
 class FunctionInputs(AutomateBase):
     """These are function author defined values.
@@ -35,38 +41,45 @@ class FunctionInputs(AutomateBase):
     ids_xml_file: str = Field(
         "https://example.com/project_standards/ids.xml",
         title="IDS XML File",
-        description="URL or content of the IDS XML file defining project standards.",
+        description="URL or content of the IDS XML file defining project standards. e.g. https://example.com/project_standards/ids.xml",
         json_schema_extra={
             "readOnly": True,
-            "label": "https://example.com/project_standards/ids.xml"
+            "label": "https://example.com/project_standards/ids.xml",
         },
-
-
     )
     bsdd_sheets: str = Field(
         "https://example.com/project_standards/bsdd.json",
         title="bsDD Sheet Identifier(s)",
-        description="Identifier or URL for the bsDD sheet relevant to the project.",
+        description="Identifier or URL for the bsDD sheet relevant to the project. e.g. https://example.com/project_standards/bsdd.json",
         json_schema_extra={
             "readOnly": True,
-            "label": "https://example.com/project_standards/bsdd.json"
-        }
-    )
-    report_format: str = Field(
-        default="PDF",
-        title="Report Format",
-        description="Preferred format for the compliance report.",
-        json_schema_extra={
-            "enum": ["PDF", "HTML", "JSON"],
-            "options": {
-                "format": "radio"
-            }
+            "label": "https://example.com/project_standards/bsdd.json",
         },
-        format= "radio",
-        options= {
-            "format": "radio"
-        }
+    )
 
+    single_category: str = Field(
+        default="Windows",
+        title="Single Category for Demo",
+        description="For demonstration purposes only this is a single category. e.g. Windows.",
+    )
+    single_property: str = Field(
+        default="OmniClass Number",
+        title="Single Property for Demo",
+        description="For demonstration purposes only this is a single property. e.g. OmniClass Number.",
+    )
+    single_rule: str = Field(
+        default="23.30.20",
+        title="Rule for Demo",
+        description="For demonstration purposes only this is a single value for that property. e.g. Prefixed 23.30.20. ",
+    )
+
+    report_format: Format = Field(
+        default=Format.PDF,
+        title="Report Format",
+        description="Preferred format for the compliance report. e.g. PDF, HTML, JSON.",
+        json_schema_extra={
+            "oneOf": create_one_of_enum(Format),
+        },
     )
     threshold_mode: ThresholdMode = Field(
         default=ThresholdMode.ERROR,
@@ -74,7 +87,7 @@ class FunctionInputs(AutomateBase):
         description="Set the threshold mode for reporting results: ERROR, WARN, or INFO.",
         json_schema_extra={
             "oneOf": create_one_of_enum(ThresholdMode),
-        }
+        },
     )
 
 
@@ -126,7 +139,6 @@ def automate_function(
     # if the function generates file results, this is how it can be
     # attached to the Speckle project / model
     # automate_context.store_file_result("./report.pdf")
-
 
 
 # make sure to call the function with the executor
