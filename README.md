@@ -1,44 +1,55 @@
-# Speckle Automate function template - Python
+[![build and deploy Speckle functions](https://github.com/specklesystems/speckle_automate-data_standards_checker/actions/workflows/main.yml/badge.svg)](https://github.com/specklesystems/speckle_automate-data_standards_checker/actions/workflows/main.yml)
 
-This is a template repository for a Speckle Automate functions written in python
-using the [specklepy](https://pypi.org/project/specklepy/) SDK to interact with Speckle data.
+# Speckle Automate Function: Data Standards Checker with IDS and bsDD
 
-This template contains the full scaffolding required to publish a function to the automate environment.
-Also has some sane defaults for a development environment setups.
+## Overview
+This repository contains the Data Standards Checker function for Speckle Automate, designed to validate AEC models against the Information Delivery Specification (IDS) and BuildingSMART Data Dictionary (bsDD) standards. It showcases the ability of Speckle to ensure that models adhere to these established data standards.
 
-## Getting started
+## ⚠️ Disclaimer: Conceptual Demonstration Only
+**IMPORTANT: This function is a conceptual demonstration and not a functional implementation. It is intended to exhibit the possibilities of aligning AEC models with IDS and bsDD standards within Speckle Automate.**
 
-1. Use this template repository to create a new repository in your own / organization's profile.
+## Functionality
+- **IDS and bsDD Compliance:** Validates models against IDS requirements and bsDD standards.
+- **Automated Standard Checking:** Demonstrates the potential for automated compliance checks.
+- **Model Data Alignment:** Ensures model data aligns with the specified standards for consistency and accuracy.
+- **Reporting and Insights:** Generates reports detailing compliance and areas requiring attention.
 
-Register the function 
+### How It Works
+The function analyzes AEC models in Speckle, comparing their elements and metadata against the requirements set by IDS and the classifications and properties defined in bsDD.
 
-### Add new dependencies
+### Potential Use Cases
+- **Quality Assurance:** Ensures model data quality and standard adherence.
+- **Regulatory Compliance:** Assists in meeting industry-specific compliance requirements.
+- **Data Integrity:** Maintains the integrity of model data throughout the project lifecycle.
 
-To add new python package dependencies to the project, use:
-`$ poetry add pandas`
+## Getting Started
+1. **Clone the Repository**: Set up this repository in your local or cloud environment.
+2. **Install Dependencies**: Follow the instructions to install necessary dependencies.
+3. **Configure and Run**: Set up your Speckle server connection and run the function for conceptual testing.
 
-### Change launch variables
+## Contributing
+Contributions in the form of ideas, discussions, or potential enhancements are welcome. Please open issues or pull requests for any suggestions.
 
-describe how the launch.json should be edited
+## Contact
+For more information or to provide feedback, please contact [Contact Information].
 
-### Github Codespaces
+---
 
-Create a new repo from this template, and use the create new code.
+**Note:** This repository is intended for demonstration and discussion around standard compliance in Speckle Automate using IDS and bsDD.
 
-### Using this Speckle Function
 
-1. [Create](https://automate.speckle.dev/) a new Speckle Automation.
-1. Select your Speckle Project and Speckle Model.
-1. Select the existing Speckle Function named [`Random comment on IFC beam`](https://automate.speckle.dev/functions/e110be8fad).
-1. Enter a phrase to use in the comment.
-1. Click `Create Automation`.
+## Using this Speckle Function
+1. **Create a New Speckle Automation**: Set up in the Speckle dashboard.
+2. **Configure the Function**: Choose the "Basic Clash Analysis" function.
+3. **Run and Review**: Execute the function and review the clash reports.
 
-## Getting Started with creating your own Speckle Function
+
 
 1. [Register](https://automate.speckle.dev/) your Function with [Speckle Automate](https://automate.speckle.dev/) and select the Python template.
 1. A new repository will be created in your GitHub account.
 1. Make changes to your Function in `main.py`. See below for the Developer Requirements, and instructions on how to test.
 1. To create a new version of your Function, create a new [GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) in your repository.
+
 
 ## Developer Requirements
 
