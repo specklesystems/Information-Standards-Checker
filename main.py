@@ -14,6 +14,7 @@ from speckle_automate import (
 
 from Rules.checks import BaseObjectRules
 from Rules.traversal import get_data_traversal_rules
+from Utilities.helpers import process_parameters, get_type_and_family, create_object_info
 from Utilities.report import generate_report
 
 
@@ -108,8 +109,8 @@ class FunctionInputs(AutomateBase):
 
 
 def automate_function(
-    automate_context: AutomationContext,
-    function_inputs: FunctionInputs,
+        automate_context: AutomationContext,
+        function_inputs: FunctionInputs,
 ) -> None:
     """
     The core logic of the Speckle Automate function.
@@ -129,37 +130,17 @@ def automate_function(
     # Assuming each object has properties: name, type, and id
     assessed_objects = {"missing": [], "invalid": [], "passing": []}
 
-    # Checking parameters
+    # Main loop for checking parameters
     for context in traversal_contexts_collection:
-        current_object = getattr(context.current, "parameters", None)
+        current_object = context.current
+        is_category = BaseObjectRules.is_category(function_inputs.single_category)
 
-        if current_object:
-            for parameter_key in current_object.get_dynamic_member_names():
-                parameter = current_object[parameter_key]
-                assessment = BaseObjectRules.evaluate_parameter(
-                    parameter, function_inputs
-                )
-
-                if getattr(
-                    current_object, "speckle_type", None
-                ) == "Objects.Other.Revit.RevitInstance" and hasattr(
-                    current_object, "definition"
-                ):
-                    type_ = getattr(current_object.definition, "type", "Unknown")
-                    family = getattr(current_object.definition, "family", "Unknown")
-                else:
-                    type_ = getattr(current_object, "type", "Unknown")
-                    family = getattr(current_object, "family", "Unknown")
-
-                object_info = {
-                    "name": getattr(current_object, "name", "Unknown"),
-                    "type": type_,
-                    "family": family,
-                    "id": getattr(current_object, "id", "Unknown"),
-                }
-
-                if assessment:
-                    assessed_objects[assessment].append(object_info)
+        if is_category(current_object) and hasattr(current_object, "parameters"):
+            assessment = process_parameters(current_object, function_inputs)
+            if assessment:
+                type_, family = get_type_and_family(current_object)
+                object_info = create_object_info(current_object, type_, family)
+                assessed_objects[assessment].append(object_info)
 
     # Attach errors or info to objects based on their parameter evaluation state
     for state, objects in assessed_objects.items():
@@ -176,8 +157,8 @@ def automate_function(
 
         # Combine messages into a single string
         combined_message = (
-            f"Found {len(objects)} objects with {state} parameters: "
-            + "; ".join(detailed_messages)
+                f"Found {len(objects)} objects with {state} parameters: "
+                + "; ".join(detailed_messages)
         )
 
         if state in ["missing", "invalid"]:
@@ -188,12 +169,6 @@ def automate_function(
             automate_context.attach_info_to_objects(
                 category=state.capitalize(), object_ids=ids, message=combined_message
             )
-
-    # Determine overall automation success or failure
-    if assessed_objects["missing"] or assessed_objects["invalid"]:
-        automate_context.mark_run_failed("Automation failed due to parameter issues.")
-    else:
-        automate_context.mark_run_success("All parameters are valid.")
 
     # Generate and attach the report
     report_format = (
@@ -207,6 +182,26 @@ def automate_function(
         function_inputs.single_rule,
     )
     automate_context.store_file_result(report_file)
+
+    print("Report file: ", report_file)
+
+    # Determine overall automation success or failure
+    if assessed_objects["missing"] or assessed_objects["invalid"]:
+        total_objects = len(assessed_objects["missing"]) + len(assessed_objects["invalid"]) + len(
+            assessed_objects["passing"])
+
+        pass_rate = len(assessed_objects["passing"]) / total_objects * 100
+        invalid_rate = len(assessed_objects["invalid"]) / total_objects * 100
+        missing_rate = len(assessed_objects["missing"]) / total_objects * 100
+
+        success_rating_message = f"Pass rate: {pass_rate:.2f}%, Invalid rate: {invalid_rate:.2f}%, Missing rate: {missing_rate:.2f}%"
+
+        print(success_rating_message)
+
+        automate_context.mark_run_failed("Automation failed due to parameter issues. " + success_rating_message)
+    else:
+
+        automate_context.mark_run_success("All parameters are valid.")
 
 
 # make sure to call the function with the executor

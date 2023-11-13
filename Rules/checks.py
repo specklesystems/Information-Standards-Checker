@@ -95,7 +95,7 @@ class BaseObjectRules:
         """
         return (
             lambda parameter: getattr(parameter, "name") is not None
-            and parameter.name == parameter_name
+                              and parameter.name == parameter_name
         )
 
     @staticmethod
@@ -116,12 +116,13 @@ class BaseObjectRules:
         has a 'category' property.
         """
         return (
-            getattr(parameter, "speckle_type", None)
-            == "Objects.BuiltElements.Revit.Parameter"
+                getattr(parameter, "speckle_type", None)
+                == "Objects.BuiltElements.Revit.Parameter"
         )
 
     @staticmethod
     def evaluate_parameter(parameter, function_inputs):
+
         """Evaluates a parameter and returns its evaluation state."""
         if not BaseObjectRules.is_revit_parameter(parameter):
             return None
@@ -130,7 +131,7 @@ class BaseObjectRules:
             return "missing"
 
         value = getattr(parameter, "value", None)
-        if value is not None and value.startswith(function_inputs.single_rule):
-            return "valid"
+        if value is not None and isinstance(value, str) and value.startswith(function_inputs.single_rule):
+            return "passing"
         else:
             return "invalid"

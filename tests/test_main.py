@@ -100,8 +100,8 @@ def fake_automation_run_data(request, test_client: SpeckleClient) -> AutomationR
     SERVER_URL = request.config.SPECKLE_SERVER_URL
     TOKEN = request.config.SPECKLE_TOKEN
 
-    project_id = "9c6bfd2177"
-    model_id = "6193bdb540"
+    project_id = "4f064f09e6"
+    model_id = "180a044971"
 
     function_name = "Automate Density Check"
 
@@ -122,7 +122,7 @@ def fake_automation_run_data(request, test_client: SpeckleClient) -> AutomationR
         project_id=project_id,
         model_id=model_id,
         branch_name="main",
-        version_id="107527ebd2",
+        version_id="2729513a2d",
         speckle_server_url=SERVER_URL,
         # These ids would be available with a valid registered Automation definition.
         automation_id=automation_id,
@@ -137,14 +137,28 @@ def fake_automation_run_data(request, test_client: SpeckleClient) -> AutomationR
     return fake_run_data
 
 
-def test_function_run(fake_automation_run_data: AutomationRunData, speckle_token: str):
+def test_function_run_fail(fake_automation_run_data: AutomationRunData, speckle_token: str):
     """Run an integration test for the automate function."""
     context = AutomationContext.initialize(fake_automation_run_data, speckle_token)
 
     automate_sdk = run_function(
         context,
         automate_function,
-        FunctionInputs(density_level=1000, max_percentage_high_density_objects=0.1),
+        FunctionInputs(single_category="Windows", single_property="OmniClass Number", single_rule="23.30.20.00",
+                       report_format="JSON")
     )
 
     assert automate_sdk.run_status == AutomationStatus.FAILED
+
+
+def test_function_run_pass(fake_automation_run_data: AutomationRunData, speckle_token: str):
+    """Run an integration test for the automate function."""
+    context = AutomationContext.initialize(fake_automation_run_data, speckle_token)
+
+    automate_sdk = run_function(
+        context,
+        automate_function,
+        FunctionInputs(single_category="Windows", single_property="OmniClass Number", single_rule="23.30.20")
+    )
+
+    assert automate_sdk.run_status != AutomationStatus.FAILED
